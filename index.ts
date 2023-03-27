@@ -1,5 +1,5 @@
 //this is the interface for a Function in ts
-import './class-decorator.ts';
+import './class-decorators.ts';
 
 /* 
 -class declaration
@@ -247,3 +247,42 @@ class Person {
 const geppetto = new Person('geppetto', 55);
 console.log(geppetto);
 geppetto.printDetails();
+
+// MEthod decorators
+
+function connectionCheck(database: Database) {
+  return function (
+    target: any,
+    propertyKey: string,
+    descriptor: PropertyDescriptor
+  ) {
+    const originalMethod = descriptor.value; //the oriaignal method
+    descriptor.value = function (...args: any[]) {
+      console.log('calling the wrapped method');
+      console.log('connected:', database.connected);
+      // if (!database.connected) {
+      //   throw new Error('call database.connect()!');
+      // }
+      return originalMethod.apply(this, args);
+    };
+  };
+}
+
+class Database {
+  connected = false;
+  mockData = ['oranges', 'potatoes', 'chicken'];
+  constructor() {}
+
+  connect() {
+    this.connected = true;
+  }
+
+  @connectionCheck(this) //doesnt work :( 
+  getData() {
+    return { error: false, data: this.mockData };
+  }
+}
+
+const database = new Database();
+database.connect();
+database.getData();
